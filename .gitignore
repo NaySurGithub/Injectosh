@@ -1,0 +1,15 @@
+*
+!.gitignore
+!Package.swift
+!README.md
+!Scripts
+!Scripts/package-app.sh
+!Scripts/InjectorHelper.cpp
+!Sources
+!Sources/Injectosh
+!Sources/Injectosh/*.swift
+!Sources/Injectosh/Resources
+!Sources/Injectosh/Resources/InjectoshInjector.exe
+!.github
+!.github/workflows
+!.github/workflows/release.yml

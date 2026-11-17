@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW
+        run: brew install mingw-w64
+      - name: Build
+        run: Scripts/package-app.sh
+      - name: Package app
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          APP="dist/Injectosh.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp .build/release/Injectosh "$APP/Contents/MacOS/Injectosh"
+          cp -R .build/release/Injectosh_Injectosh.bundle "$APP/"
+          cat > "$APP/Contents/Info.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>CFBundleExecutable</key><string>Injectosh</string>
+          <key>CFBundleIdentifier</key><string>dev.injectosh.app</string>
+          <key>CFBundleName</key><string>Injectosh</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>CFBundleShortVersionString</key><string>${VERSION#v}</string>
+          <key>LSMinimumSystemVersion</key><string>13.0</string>
+          <key>NSHighResolutionCapable</key><true/>
+          </dict></plist>
+          PLIST
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "dist/Injectosh-${VERSION}-macOS.zip"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" "dist/Injectosh-${GITHUB_REF_NAME}-macOS.zip" --generate-notes
